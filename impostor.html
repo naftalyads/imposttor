@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>IMPOSTOR</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #0f0f0f;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+}
+.container {
+    max-width: 400px;
+    margin: auto;
+    background: #1c1c1c;
+    padding: 20px;
+    border-radius: 10px;
+}
+input, button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: none;
+    font-size: 16px;
+}
+button {
+    background: #ff3b3b;
+    color: white;
+    cursor: pointer;
+}
+button:hover {
+    opacity: 0.9;
+}
+.word-box {
+    margin-top: 20px;
+    font-size: 22px;
+    font-weight: bold;
+}
+.hidden {
+    display: none;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🕵️ IMPOSTOR</h1>
+
+    <div id="setup">
+        <input type="number" id="players" placeholder="Quantidade de jogadores" min="3">
+        <input type="number" id="impostors" placeholder="Quantidade de impostores" min="1">
+        <button onclick="startGame()">Começar rodada</button>
+    </div>
+
+    <div id="game" class="hidden">
+        <button onclick="showWord()">Ver minha palavra</button>
+        <div class="word-box" id="wordBox"></div>
+        <button onclick="nextPlayer()">Próximo jogador</button>
+    </div>
+
+    <button onclick="resetGame()">Nova rodada</button>
+</div>
+
+<script>
+const words = [
+    "avião","hospital","cinema","praia","escola","cadeira","relógio",
+    "telefone","restaurante","chuva","floresta","ônibus","teatro",
+    "computador","janela","biblioteca","futebol","farmácia",
+    "elevador","navio","espelho","cadeado","travesseiro",
+    "montanha","cachoeira","deserto","castelo","supermercado"
+];
+
+let usedWords = JSON.parse(localStorage.getItem("usedWords")) || [];
+let selectedWord = "";
+let impostorIndexes = [];
+let currentPlayer = 0;
+let totalPlayers = 0;
+
+function startGame() {
+    totalPlayers = parseInt(document.getElementById("players").value);
+    const impostors = parseInt(document.getElementById("impostors").value);
+
+    if (!totalPlayers || !impostors || impostors >= totalPlayers) {
+        alert("Configuração inválida");
+        return;
+    }
+
+    const availableWords = words.filter(w => !usedWords.includes(w));
+
+    if (availableWords.length === 0) {
+        alert("Todas as palavras já foram usadas!");
+        return;
+    }
+
+    selectedWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+    usedWords.push(selectedWord);
+    localStorage.setItem("usedWords", JSON.stringify(usedWords));
+
+    impostorIndexes = [];
+    while (impostorIndexes.length < impostors) {
+        const rand = Math.floor(Math.random() * totalPlayers);
+        if (!impostorIndexes.includes(rand)) {
+            impostorIndexes.push(rand);
+        }
+    }
+
+    currentPlayer = 0;
+    document.getElementById("setup").classList.add("hidden");
+    document.getElementById("game").classList.remove("hidden");
+    document.getElementById("wordBox").innerText = "";
+}
+
+function showWord() {
+    if (impostorIndexes.includes(currentPlayer)) {
+        document.getElementById("wordBox").innerText = "🚨 VOCÊ É O IMPOSTOR";
+    } else {
+        document.getElementById("wordBox").innerText = selectedWord;
+    }
+}
+
+function nextPlayer() {
+    document.getElementById("wordBox").innerText = "";
+    currentPlayer++;
+
+    if (currentPlayer >= totalPlayers) {
+        alert("Todos já viram! Comecem os palpites 😈");
+        resetGame(false);
+    }
+}
+
+function resetGame(full = true) {
+    document.getElementById("game").classList.add("hidden");
+    document.getElementById("setup").classList.remove("hidden");
+    document.getElementById("wordBox").innerText = "";
+    if (full) currentPlayer = 0;
+}
+</script>
+
+</body>
+</html>
